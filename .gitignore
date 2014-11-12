@@ -1,0 +1,12 @@
+
+build
+
+*.xcuserstate/
+
+*.xcuserdata/
+
+DrawPath.xcodeproj/project.xcworkspace/xcuserdata/baidu.xcuserdatad/UserInterfaceState.xcuserstate
+
+DrawPath.xcodeproj/xcuserdata/baidu.xcuserdatad/xcschemes/DrawPath.xcscheme
+
+DrawPath.xcodeproj/xcuserdata/baidu.xcuserdatad/xcschemes/xcschememanagement.plist

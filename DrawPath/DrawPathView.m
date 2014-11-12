@@ -8,7 +8,12 @@
 
 #import "DrawPathView.h"
 
+@implementation DrawPathItem
+@end
+
 @interface DrawPathView ()
+// 大厦的个数
+@property (nonatomic, assign) NSInteger towerNumber;
 @property (nonatomic, retain) NSArray *vertexPoints;
 @property (nonatomic, retain) NSArray *pathInfos;
 
@@ -21,17 +26,27 @@
     return [self initWithFrame:frame towerNumber:0];
 }
 
+- (UIColor *)colorWithHex:(NSInteger)hexValue
+{
+    return [UIColor colorWithRed:((float)((hexValue & 0xFF0000) >> 16))/255.0
+                           green:((float)((hexValue & 0x00FF00) >> 8))/255.0
+                            blue:((float)(hexValue & 0x0000FF))/255.0
+                           alpha:1.0];
+    
+}
+
 - (id)initWithFrame:(CGRect)frame towerNumber:(NSInteger)towerNumber
 {
     self = [super initWithFrame:frame];
     if (self) {
+        self.backgroundColor = [UIColor whiteColor];
         self.towerNumber = towerNumber;
         self.lineWidth = 6;
         
         self.lineInvalidColor = [UIColor grayColor];
-        self.lineValidColor = [UIColor blueColor];
+        self.lineValidColor = [self colorWithHex:0x1ba9ba];
         
-        [self calculateVertex];
+        [self calculateVertex1];
         // Initialization code
     }
     return self;
@@ -40,12 +55,37 @@
 -(void)dealloc
 {
     [_vertexPoints release];
-    self.vertexPoints = nil;
-    
     [_pathInfos release];
-    self.pathInfos = nil;
-    
+    [_lineInvalidColor release];
+    [_lineValidColor release];
+
     [super dealloc];
+}
+
+- (void)calculateVertex1 {
+    CGFloat r = self.bounds.size.width/2;  // 半径
+    CGFloat x0 = self.bounds.origin.x + r; // 圆心x
+    CGFloat y0 = self.bounds.origin.y + r; // 圆心y
+    
+    NSMutableArray *vertexs = [NSMutableArray arrayWithCapacity:0];
+    
+    CGFloat X1 = x0; // 已知一个顶点x
+    CGFloat Y1 = r + y0; // 已知一个顶点y
+    
+    float angle = 2*M_PI/self.towerNumber;
+    float b = atanf((Y1-y0)/(X1-x0));//反正切函数
+    
+    float x,y;
+    for(int i = 0; i < self.towerNumber;i++) {
+        x = r*cos(angle*i+b)+x0;
+        y = r*sin(angle*i+b)+y0;
+        
+        CGPoint dPoint = CGPointMake(x, y);
+        NSValue * dPointValue = [NSValue valueWithCGPoint:dPoint];
+        [vertexs addObject:dPointValue];
+    }
+    
+    self.vertexPoints = vertexs;
 }
 
 
@@ -61,10 +101,6 @@
 	CGFloat h = self.bounds.size.height/2;
 	CGFloat x = self.bounds.origin.x + w;
 	CGFloat y = self.bounds.origin.y + h;
-    
-    // 往里缩一点
-    w *= 0.8;
-	h *= 0.8;
     
     NSMutableArray *vertexs = [NSMutableArray arrayWithCapacity:0];
     
@@ -94,23 +130,11 @@
     return [self.vertexPoints copy];
 }
 
-/*****************************************************************************************************
- 
- item：NSDictionary
- key = @"path" value:CGPoint类型 两个顶点的序号，例如，CGPonit pt = CGMakePoint(0,1),就表示:百度大厦 到 首创
- 百度大厦序号为0,
- 首创空间序号为1,
- 奎科大厦序号为2,
- 鹏寰大厦序号为3,
- 文思海辉序号为4,
- 腾飞大厦序号为5,
- 
- 以后要增加依次排
- 
- key = @"flag"  value: NSNumber , 这个路径是否标蓝 YES 标蓝；NO 标灰
- 
-******************************************************************************************************/
-
+//===============================================================================================
+// item：NSDictionary
+// key1 = @"path" value:CGPoint类型 两个顶点的序号，例如，CGPonit pt = CGMakePoint(0,1),就表示:百度大厦 到 首创
+// key2 = @"flag"  value: NSNumber , 这个路径是否标蓝 YES 标蓝；NO 标灰
+//===============================================================================================
 - (void)reloadPaths:(NSArray* )pathInfos
 {
     self.pathInfos = pathInfos;
@@ -130,11 +154,11 @@
         CGContextSetLineWidth(context, self.lineWidth);
         
         for (int i = 0; i < [self.pathInfos count]; i ++) {
-            NSDictionary *tempPath = [self.pathInfos objectAtIndex:i];
-            NSValue *tempPathPoint = [tempPath objectForKey:@"path"];
+            DrawPathItem *tempPath = [self.pathInfos objectAtIndex:i];
+            NSValue *tempPathPoint = [tempPath path];
             CGPoint tempPoint = [tempPathPoint CGPointValue];
             
-            BOOL flag = [[tempPath objectForKey:@"flag"] boolValue];
+            BOOL flag = [[tempPath flag] boolValue];
             UIColor *lineColor = flag ? self.lineValidColor : self.lineInvalidColor;
             CGContextSetStrokeColorWithColor(context, lineColor.CGColor);
             CGContextSetLineCap(context,kCGLineCapRound);

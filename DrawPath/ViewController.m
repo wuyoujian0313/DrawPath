@@ -69,19 +69,20 @@
     for (int i = 0; i < 6; i ++) {
         if (i != index) {
             
-            NSMutableDictionary *dic = [NSMutableDictionary dictionaryWithCapacity:0];
+            DrawPathItem *item = [[DrawPathItem alloc] init];
+            
             NSValue *line = [NSValue valueWithCGPoint:CGPointMake(index, i)];
             if (i == 2) {
                 NSNumber *flag = [NSNumber numberWithBool:YES];
-                [dic setObject:flag forKey:@"flag"];
+                item.flag = flag;
             }else{
                 NSNumber *flag = [NSNumber numberWithBool:NO];
-                [dic setObject:flag forKey:@"flag"];
+                item.flag = flag;
             }
             
-            
-            [dic setObject:line forKey:@"path"];
-            [paths addObject:dic];
+            item.path = line;
+
+            [paths addObject:item];
         }
         
     }
